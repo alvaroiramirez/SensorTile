@@ -107,22 +107,23 @@ class Device():
 
 
     async def stop_notification(self, char):
-            try:
-                await self.client.stop_notify(char)
-            except Exception as e:
-                print(f"Error: {e}")
+        try:
+            await self.client.stop_notify(char)
+        except Exception as e:
+            print(f"Error: {e}")
 
 
     async def start_notification(self, char):
-            try:
-                task = asyncio.create_task(self.client.start_notify(char, self.read_data))
-                await task
+        try:
+            task = asyncio.create_task(self.client.start_notify(char, self.read_data))
+            await task
 
-            except Exception as e:
-                print(f"AIR Error: {e}")
+        except Exception as e:
+            print(f"AIR Error: {e}")
 
 
     def test_read_data():
+        # Newest version
         print("I'm reading...")
 
 
@@ -183,7 +184,7 @@ async def main():
 
     # Closes the process
     print("Process complete.")
-
+    
 
 if __name__ == "__main__":
     # main()
