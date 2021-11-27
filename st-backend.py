@@ -1,11 +1,43 @@
-## imports
+## IMPORTS
+from io import TextIOWrapper
 from stconfig import DEVICE_MAC, HANDLE_READ_DATA
+
 import asyncio
 import struct
+import time
 import logging
 from bleak import BleakClient, BleakError, BleakScanner
 
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QAction
+from PyQt6.QtWidgets import QApplication, QLabel, QMainWindow, QMenu
+
+# from pynput.keyboard import Key, Listener
+
+import keyboard
+
+
+# GLOBAL VARIABLES
+print_status = ""
+cnt = 0
+
+
 ## CLASSES
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+
+        self.label = QLabel()
+
+
+    def contextMenuEvent(self, e):
+        context = QMenu(self)
+        context.addAction(QAction("test 1", self))
+        context.addAction(QAction("test 2", self))
+        context.addAction(QAction("test 3", self))
+        context.exec(e.globalPos())
+
+
 class Device():
     __name: str
     __mac: str
@@ -14,7 +46,7 @@ class Device():
     gyr = [0, 0, 0]
     mag = [0, 0, 0]
     # data = bytearray(b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
-
+    data_file: TextIOWrapper
 
     # Properties
     @property
@@ -46,14 +78,7 @@ class Device():
     def __init__(self, mac):
         self.__mac = mac
         self.client = BleakClient(self.__mac)
-
-        # This line generates RuntimeError: asyncio.run() cannot be called from a running event loop. 
-        # asyncio.run(self.connect())
-        # print(f"Connected in __init__()?: {self.client.is_connected}")
-
-        # A LiFo Queue will ensure that the most recent registered
-        # ST data is retrieved
-        # self.data = asyncio.LifoQueue(maxsize=1)        
+        self.data = asyncio.LifoQueue(maxsize=1)
 
 
     async def connect(self):
@@ -62,16 +87,6 @@ class Device():
 
         # Ensure connection was established
         assert self.client.is_connected, "Device is not connected"
-
-
-    # no_async_connect generates RuntimeWarning: coroutine 'BleakClientWinRT.connect' was never awaited
-    # I leave this function here just to remember why async def connect() is needed
-    # def no_async_connect(self):
-    #     # Connect to SensorTile
-    #     self.client.connect()
-
-    #     # Ensure connection was established
-    #     assert self.client.is_connected, "Device is not connected"
 
 
     async def list_services(self):
@@ -128,6 +143,12 @@ class Device():
 
 
     def read_data(self, param, data):
+
+        global print_status, cnt
+
+        # Line counter
+        cnt += 1
+
         """Simple notification handler which prints the data received."""
         result = struct.unpack_from("<hhhhhhhhhh", data)
 
@@ -149,26 +170,70 @@ class Device():
         self.mag[2] = result[9]
 
         # Display results
-        print("")
-        print(f"Raw data: {self.rawdata}")
-        print(f"ACC X: {self.acc[0]}   ACC Y: {self.acc[1]}   ACC Z: {self.acc[2]}")
-        print(f"GYR X: {self.gyr[0]}   GYR Y: {self.gyr[1]}   GYR Z: {self.gyr[2]}")
-        print(f"MAG X: {self.mag[0]}   MAG Y: {self.mag[1]}   MAG Z: {self.mag[2]}")
+        if print_status == "s":
+            print("")
+            print(f"cnt: {cnt}   Raw data: {self.rawdata}")
+            print(f"ACC X: {self.acc[0]}   ACC Y: {self.acc[1]}   ACC Z: {self.acc[2]}")
+            print(f"GYR X: {self.gyr[0]}   GYR Y: {self.gyr[1]}   GYR Z: {self.gyr[2]}")
+            print(f"MAG X: {self.mag[0]}   MAG Y: {self.mag[1]}   MAG Z: {self.mag[2]}")
 
+            self.data_file.write(f"\
+                {self.acc[0]},{self.acc[1]},{self.acc[2]},\
+                {self.gyr[0]},{self.gyr[1]},{self.gyr[2]},\
+                {self.mag[0]},{self.mag[1]},{self.mag[2]}\n")
+        
 
 async def test(client):
-    try:
-        await client.start_notification(HANDLE_READ_DATA)
-        await asyncio.sleep(1)
-        print('Process complete')
+    
+    global print_status
 
+    try:
+        data_file = open(r"data.csv","w")
+        client.data_file = data_file
+
+        await client.start_notification(HANDLE_READ_DATA)
+        
+        while True:
+            await asyncio.sleep(0)
+
+            if print_status == "":
+                print("Ready!")
+                print_status = "r"
+            if keyboard.is_pressed("q"):
+                print("You pressed q")
+                break
+            elif keyboard.is_pressed("s"):
+                if print_status != "s":
+                    print("Start data callection...")
+                    client.data_file.write(f"Start data callection...\n")
+                    print_status = "s"
+            elif keyboard.is_pressed("e"):
+                if print_status != "e":
+                    print("...End data callection")
+                    client.data_file.write(f"...End data callection\n")
+                    print_status = "e"
+
+        print('About to stop notification...')
         await client.stop_notification(HANDLE_READ_DATA)
+        print('Notification stopped')
 
     except Exception as e:
         print(f"AIR Error: {e}")
 
+    else:
+        data_file.close()
+        print('File closed')
+
+    print('Process complete')
+    return
+
 
 async def main():
+
+    # GUI
+    # app = QApplication([])
+    # window = MainWindow()
+    # window.show()
 
     # Register device
     print("Registering device...")
@@ -182,10 +247,20 @@ async def main():
     print("Starting testing...")
     await test(st2)
 
+    # GUI
+    # app.exec()
+
     # Closes the process
     print("Process complete.")
     
+    return
+
 
 if __name__ == "__main__":
     # main()
     asyncio.run(main())
+
+
+
+
+
