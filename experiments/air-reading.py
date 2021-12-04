@@ -19,11 +19,8 @@ import struct
 
 from bleak import BleakClient
 from bleak import BleakScanner
+from stconfig import DEVICE_MAC, CHAR_RW
 
-# CHAR_RW = '00000008-0001-11e1-ac36-0002a5d5c51b'
-CHAR_RW    = '00002a00-0000-1000-8000-00805f9b34fb' # Characteristic for Device Name
-DEVICE_MAC = 'C0:83:2D:33:1C:4B'                    # SensorTile 1
-# DEVICE_MAC = 'C0:83:19:32:45:36'                    # SensorTile 3
 ACTION     = "R"                                    # R: Read   W: Write   RW: Read & Write
 
 async def air_list_services(client):
@@ -235,9 +232,9 @@ def notification_handler(sender, data):
 async def main():
     # await test()
 
-    await process_one(DEVICE_MAC)
-    # await process_all()
-    device_name = 'ABC'
+    # await process_one(DEVICE_MAC)
+    await process_all()
+    # device_name = 'ABC'
     # char1 = '00002a00-0000-1000-8000-00805f9b34fb'
     # char2 = '00002a01-0000-1000-8000-00805f9b34fb'
     # char3 = '00002a04-0000-1000-8000-00805f9b34fb'

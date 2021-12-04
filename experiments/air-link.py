@@ -8,7 +8,7 @@ async def main():
     scanner = BleakScanner()
     scanner.register_detection_callback(detection_callback)
     await scanner.start()
-    await asyncio.sleep(1.0)
+    await asyncio.sleep(3.0)
     await scanner.stop()
 
     for d in scanner.discovered_devices:

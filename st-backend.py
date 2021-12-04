@@ -20,6 +20,7 @@ import keyboard
 # GLOBAL VARIABLES
 print_status = ""
 cnt = 0
+exercise = 0
 
 
 ## CLASSES
@@ -137,14 +138,9 @@ class Device():
             print(f"AIR Error: {e}")
 
 
-    def test_read_data():
-        # Newest version
-        print("I'm reading...")
-
-
     def read_data(self, param, data):
 
-        global print_status, cnt
+        global print_status, cnt, exercise
 
         # Line counter
         cnt += 1
@@ -177,19 +173,21 @@ class Device():
             print(f"GYR X: {self.gyr[0]}   GYR Y: {self.gyr[1]}   GYR Z: {self.gyr[2]}")
             print(f"MAG X: {self.mag[0]}   MAG Y: {self.mag[1]}   MAG Z: {self.mag[2]}")
 
-            self.data_file.write(f"\
+            self.data_file.write(f"{cnt},{exercise},\
                 {self.acc[0]},{self.acc[1]},{self.acc[2]},\
                 {self.gyr[0]},{self.gyr[1]},{self.gyr[2]},\
-                {self.mag[0]},{self.mag[1]},{self.mag[2]}\n")
+                {self.mag[0]},{self.mag[1]},{self.mag[2]},\
+                {self.rawdata},\n")
         
 
 async def test(client):
     
-    global print_status
+    global print_status, exercise
 
     try:
         data_file = open(r"data.csv","w")
         client.data_file = data_file
+        client.data_file.write(f"cnt,exercise,ACC X, ACC Y, ACC Z, GYR X, GYR Y, GYR Z, MAG X, MAG Y, MAG Z, raw\n")
 
         await client.start_notification(HANDLE_READ_DATA)
         
@@ -204,13 +202,12 @@ async def test(client):
                 break
             elif keyboard.is_pressed("s"):
                 if print_status != "s":
-                    print("Start data callection...")
-                    client.data_file.write(f"Start data callection...\n")
+                    exercise += 1
+                    print(f"Start data callection exercise {exercise}...")
                     print_status = "s"
             elif keyboard.is_pressed("e"):
                 if print_status != "e":
-                    print("...End data callection")
-                    client.data_file.write(f"...End data callection\n")
+                    print(f"...End data callection exercise {exercise}")
                     print_status = "e"
 
         print('About to stop notification...')
@@ -257,7 +254,7 @@ async def main():
 
 
 if __name__ == "__main__":
-    # main()
+
     asyncio.run(main())
 
 
