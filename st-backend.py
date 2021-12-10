@@ -12,8 +12,6 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QAction
 from PyQt6.QtWidgets import QApplication, QLabel, QMainWindow, QMenu
 
-# from pynput.keyboard import Key, Listener
-
 import keyboard
 
 
@@ -129,12 +127,14 @@ class Device():
 
     async def stop_notification(self, char):
 
-        # *** I want to confirm that this coroutine stops notifications ***
+        print('About to stop notification...')
 
         try:
             await self.client.stop_notify(char)
         except Exception as e:
             print(f"Error: {e}")
+
+        print('Notification stopped')
 
 
     async def start_notification(self, char):
@@ -179,7 +179,7 @@ class Device():
         self.mag[2] = result[9]
 
         # Display results
-        if print_status == "s":
+        if print_status == "recording":
             if SHOW_VALUES_ON_SCREEN:
                 print("")
                 print(f"cnt: {cnt}   Time Stamp: {self.timeStamp}   Raw data: {self.rawdata}")
@@ -207,12 +207,11 @@ def openFile():
 
     global exercise
 
-    updateExerciseNumber()
-
     filename = ".\\data\\" + \
         time.strftime('%y%m%d', datetime_stamp) + "_" + \
         time.strftime('%H%M%S', datetime_stamp) + "_" + \
-        '{:0>2}'.format(exercise) + ".csv"
+        '{:0>2}'.format(exercise) + "_" + \
+        '{:0>2}'.format(sample) + ".csv"
 
     file = open(filename, "w")
 
@@ -232,6 +231,8 @@ def updateExerciseNumber():
 
     global exercise
 
+    keyboard.send('esc')
+
     # Display options
     print("Menu")
     print("====")
@@ -239,10 +240,16 @@ def updateExerciseNumber():
     print("1 - Leg up and down")
     print("2 - Knee facing up")
     print("3 - Knee facing down")
+    print("x - Exit")
     print("")
 
-    exercise = int(input())
-    
+    selection = input()
+
+    if selection == 'x':
+        exercise = -1
+    else:
+        exercise = int(selection)
+
 
 # Generate data to train the model
 async def generateData(client):
@@ -250,62 +257,74 @@ async def generateData(client):
     global print_status, exercise, sample
 
     try:
+        # Initialize process
         setInitialDateTimeStamp()
+        updateExerciseNumber()
 
-        # Initialize keyboard status
-        if print_status == "":
-            client.data_file = openFile()
+        print_status = "ready"
+        print(f"   Ready to start exercise {exercise}!")
 
-            print_status = "r"
-            print(f"   Ready to start exercise {exercise}!")
-
+        # Start notifications
         await client.start_notification(HANDLE_READ_DATA)
         
         while True:
+            if exercise == -1:
+                break
+
             await asyncio.sleep(0)
 
             # Keyboard management
             if keyboard.is_pressed("x"):    # Exit
-                if print_status == "s":
+                if print_status == "recording":
                     print(f"      ...End data collection exercise {exercise} / sample {sample}")
+                    client.data_file.close()
+                    print('File closed')
+
                 print("Data collection terminated")
                 break
 
             elif keyboard.is_pressed("s"):  # Start collecting data
-                if print_status != "s":
+                if print_status != "recording":
                     sample += 1
                     print(f"      Start data collection exercise {exercise} / sample {sample}...")
-                    print_status = "s"
+                    print_status = "recording"
             
-            elif keyboard.is_pressed("e"):  # Stop data collection
-                if print_status == "s":
-                    print(f"      ...End data collection exercise {exercise} / sample {sample}")
-                    print_status = "e"
-            
-            elif keyboard.is_pressed("n"):  # Prepare system for new exercise
-                if print_status != "r":
-                    if print_status == "s":
-                        print(f"      ...End data collection exercise {exercise} / sample {sample}")
-
-                    client.data_file.close()
-                    print('File closed')
-
                     client.data_file = openFile()
 
-                    sample = 0
+            elif keyboard.is_pressed("e"):  # Stop data collection
+                if print_status == "recording":
+                    print(f"      ...End data collection exercise {exercise} / sample {sample}")
+                    print_status = "stopped"
+                    client.data_file.close()
+                    print('File closed')
+            
+            elif keyboard.is_pressed("n"):  # Prepare system for new exercise
+                if print_status != "ready":
+                    if print_status == "recording":
+                        print(f"      ...End data collection exercise {exercise} / sample {sample}")
+                        client.data_file.close()
+                        print('File closed')
+
+                    updateExerciseNumber()
                     print(f"   Ready to start exercise {exercise}")
-                    print_status = "r"
+                    print_status = "ready"
                 
-        print('About to stop notification...')
+                    sample = 0
+
+        # Stop notifications
         await client.stop_notification(HANDLE_READ_DATA)
-        print('Notification stopped')
 
     except Exception as e:
         print(f"AIR Error: {e}")
 
-    else:
-        client.data_file.close()
-        print('File closed')
+    finally:
+        try:
+            client.data_file.close()
+            print('File closed')
+        except:
+            pass
+        finally:
+            keyboard.send('esc')
 
     print('Data capture complete')
     return
