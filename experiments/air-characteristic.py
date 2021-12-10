@@ -2,7 +2,7 @@ import asyncio
 from bleak import BleakClient
 
 from stconfig import DEVICE_MAC
-MODEL_NBR_UUID = "00140000-0001-11e1-ac36-0002a5d5c51b"
+MODEL_NBR_UUID = "00002a00-0000-1000-8000-00805f9b34fb"
 
 async def main(address):
     async with BleakClient(address) as client:

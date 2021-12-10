@@ -1,6 +1,6 @@
 ## IMPORTS
 from io import TextIOWrapper
-from stconfig import DEVICE_MAC, HANDLE_READ_DATA
+from stconfig import DEVICE_MAC, HANDLE_READ_DATA, SHOW_VALUES_ON_SCREEN
 
 import asyncio
 import struct
@@ -21,6 +21,8 @@ import keyboard
 print_status = ""
 cnt = 0
 exercise = 0
+sample = 0
+datetime_stamp = 0
 
 
 ## CLASSES
@@ -43,6 +45,9 @@ class Device():
     __name: str
     __mac: str
     __rawdata: str   # This is not a string. Update.
+    
+    #Sensors data
+    timeStamp = ""
     acc = [0, 0, 0]
     gyr = [0, 0, 0]
     mag = [0, 0, 0]
@@ -123,6 +128,9 @@ class Device():
 
 
     async def stop_notification(self, char):
+
+        # *** I want to confirm that this coroutine stops notifications ***
+
         try:
             await self.client.stop_notify(char)
         except Exception as e:
@@ -140,6 +148,8 @@ class Device():
 
     def read_data(self, param, data):
 
+        # *** Note: I need to check what is param ***
+
         global print_status, cnt, exercise
 
         # Line counter
@@ -149,6 +159,9 @@ class Device():
         result = struct.unpack_from("<hhhhhhhhhh", data)
 
         self.rawdata = data
+
+        # Time stamp
+        self.timeStamp = result[0]
 
         # Acceleration
         self.acc[0] = result[1]
@@ -167,49 +180,122 @@ class Device():
 
         # Display results
         if print_status == "s":
-            print("")
-            print(f"cnt: {cnt}   Raw data: {self.rawdata}")
-            print(f"ACC X: {self.acc[0]}   ACC Y: {self.acc[1]}   ACC Z: {self.acc[2]}")
-            print(f"GYR X: {self.gyr[0]}   GYR Y: {self.gyr[1]}   GYR Z: {self.gyr[2]}")
-            print(f"MAG X: {self.mag[0]}   MAG Y: {self.mag[1]}   MAG Z: {self.mag[2]}")
+            if SHOW_VALUES_ON_SCREEN:
+                print("")
+                print(f"cnt: {cnt}   Time Stamp: {self.timeStamp}   Raw data: {self.rawdata}")
+                print(f"ACC X: {self.acc[0]}   ACC Y: {self.acc[1]}   ACC Z: {self.acc[2]}")
+                print(f"GYR X: {self.gyr[0]}   GYR Y: {self.gyr[1]}   GYR Z: {self.gyr[2]}")
+                print(f"MAG X: {self.mag[0]}   MAG Y: {self.mag[1]}   MAG Z: {self.mag[2]}")
 
-            self.data_file.write(f"{cnt},{exercise},\
-                {self.acc[0]},{self.acc[1]},{self.acc[2]},\
-                {self.gyr[0]},{self.gyr[1]},{self.gyr[2]},\
-                {self.mag[0]},{self.mag[1]},{self.mag[2]},\
-                {self.rawdata},\n")
+            self.data_file.write(f"{cnt}, {self.timeStamp}, {exercise}, {sample}, \
+                {self.acc[0]}, {self.acc[1]}, {self.acc[2]},\
+                {self.gyr[0]}, {self.gyr[1]}, {self.gyr[2]},\
+                {self.mag[0]}, {self.mag[1]}, {self.mag[2]},\
+                {self.rawdata}\n")
         
 
-async def test(client):
+# Store datetime stamp for filename
+def setInitialDateTimeStamp():
+
+    global datetime_stamp
+
+    datetime_stamp = time.localtime()
+
+
+# Generate the name of the file using the system's current time
+def openFile():
+
+    global exercise
+
+    updateExerciseNumber()
+
+    filename = ".\\data\\" + \
+        time.strftime('%y%m%d', datetime_stamp) + "_" + \
+        time.strftime('%H%M%S', datetime_stamp) + "_" + \
+        '{:0>2}'.format(exercise) + ".csv"
+
+    file = open(filename, "w")
+
+    title = "cnt, time stamp, exercise, sample, "
+    title += "ACC X, ACC Y, ACC Z, "
+    title += "GYR X, GYR Y, GYR Z, "
+    title += "MAG X, MAG Y, MAG Z, "
+    title += "raw\n"
+
+    file.write(f"{title}")
+
+    return file
+
+
+# Obtain the number of the exercise to record
+def updateExerciseNumber():
+
+    global exercise
+
+    # Display options
+    print("Menu")
+    print("====")
+    print("")
+    print("1 - Leg up and down")
+    print("2 - Knee facing up")
+    print("3 - Knee facing down")
+    print("")
+
+    exercise = int(input())
     
-    global print_status, exercise
+
+# Generate data to train the model
+async def generateData(client):
+    
+    global print_status, exercise, sample
 
     try:
-        data_file = open(r"data.csv","w")
-        client.data_file = data_file
-        client.data_file.write(f"cnt,exercise,ACC X, ACC Y, ACC Z, GYR X, GYR Y, GYR Z, MAG X, MAG Y, MAG Z, raw\n")
+        setInitialDateTimeStamp()
+
+        # Initialize keyboard status
+        if print_status == "":
+            client.data_file = openFile()
+
+            print_status = "r"
+            print(f"   Ready to start exercise {exercise}!")
 
         await client.start_notification(HANDLE_READ_DATA)
         
         while True:
             await asyncio.sleep(0)
 
-            if print_status == "":
-                print("Ready!")
-                print_status = "r"
-            if keyboard.is_pressed("q"):
-                print("You pressed q")
+            # Keyboard management
+            if keyboard.is_pressed("x"):    # Exit
+                if print_status == "s":
+                    print(f"      ...End data collection exercise {exercise} / sample {sample}")
+                print("Data collection terminated")
                 break
-            elif keyboard.is_pressed("s"):
-                if print_status != "s":
-                    exercise += 1
-                    print(f"Start data callection exercise {exercise}...")
-                    print_status = "s"
-            elif keyboard.is_pressed("e"):
-                if print_status != "e":
-                    print(f"...End data callection exercise {exercise}")
-                    print_status = "e"
 
+            elif keyboard.is_pressed("s"):  # Start collecting data
+                if print_status != "s":
+                    sample += 1
+                    print(f"      Start data collection exercise {exercise} / sample {sample}...")
+                    print_status = "s"
+            
+            elif keyboard.is_pressed("e"):  # Stop data collection
+                if print_status == "s":
+                    print(f"      ...End data collection exercise {exercise} / sample {sample}")
+                    print_status = "e"
+            
+            elif keyboard.is_pressed("n"):  # Prepare system for new exercise
+                if print_status != "r":
+                    if print_status == "s":
+                        print(f"      ...End data collection exercise {exercise} / sample {sample}")
+
+                    client.data_file.close()
+                    print('File closed')
+
+                    client.data_file = openFile()
+
+                    sample = 0
+                    print(f"   Ready to start exercise {exercise}")
+                    print_status = "r"
+                
         print('About to stop notification...')
         await client.stop_notification(HANDLE_READ_DATA)
         print('Notification stopped')
@@ -218,10 +304,10 @@ async def test(client):
         print(f"AIR Error: {e}")
 
     else:
-        data_file.close()
+        client.data_file.close()
         print('File closed')
 
-    print('Process complete')
+    print('Data capture complete')
     return
 
 
@@ -242,7 +328,7 @@ async def main():
 
     # Read and process data
     print("Starting testing...")
-    await test(st2)
+    await generateData(st2)
 
     # GUI
     # app.exec()
@@ -256,8 +342,3 @@ async def main():
 if __name__ == "__main__":
 
     asyncio.run(main())
-
-
-
-
-
