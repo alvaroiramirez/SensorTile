@@ -23,6 +23,8 @@ Version 1.5.1 allows to record n samples of up to three exercises:
 
 Collected data is stored in .csv format.
 
+Run 'st-backend.py' to execute the system.
+
 ------
 
 Bleak is an acronym for Bluetooth Low Energy platform Agnostic Klient.
