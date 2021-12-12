@@ -16,7 +16,9 @@ This software uses Bleak (by Henrik Blidth) to connect a SensorTile with a Windo
 Version 1.5.1 allows to record n samples of up to three exercises:
 
 1 - Leg up and down
+
 2 - Knee facing up
+
 3 - Knee facing down
 
 The data is stored in .csv format.
