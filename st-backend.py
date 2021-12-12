@@ -297,8 +297,6 @@ async def mainControl(client):
         await client.start_notification(HANDLE_READ_DATA)
         
         while True:
-            # await asyncio.sleep(0)
-
             # Keyboard management
             key = await async_input_without_enter_needed()
 
