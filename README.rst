@@ -21,7 +21,7 @@ Version 1.5.1 allows to record n samples of up to three exercises:
 
 The data is stored in .csv format.
 
-----
+------
 
 Bleak is an acronym for Bluetooth Low Energy platform Agnostic Klient.
 
