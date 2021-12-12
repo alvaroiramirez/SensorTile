@@ -21,7 +21,7 @@ Version 1.5.1 allows to record n samples of up to three exercises:
 
   3 - Knee facing down
 
-The data is stored in .csv format.
+Collected data is stored in .csv format.
 
 ------
 
