@@ -1,18 +1,26 @@
 ## IMPORTS
 from io import TextIOWrapper
-from stconfig import DEVICE_MAC, HANDLE_READ_DATA, SHOW_VALUES_ON_SCREEN
 
+# Bluetooth connectivity
 import asyncio
-import struct
-import time
-import logging
-from bleak import BleakClient, BleakError, BleakScanner
+from bleak import BleakClient
 
+# Unpack sensor data
+import struct
+
+# keyboard management
+from aiokeyboard import async_input_without_enter_needed  # Also available: async_input_requiring_enter
+
+# import time
+from datetime import datetime
+
+# GUI
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QAction
 from PyQt6.QtWidgets import QApplication, QLabel, QMainWindow, QMenu
 
-import keyboard
+# App configuration
+from stconfig import DEVICE_MAC, HANDLE_READ_DATA, SHOW_VALUES_ON_SCREEN, FILE_TYPE
 
 
 # GLOBAL VARIABLES
@@ -49,7 +57,6 @@ class Device():
     acc = [0, 0, 0]
     gyr = [0, 0, 0]
     mag = [0, 0, 0]
-    # data = bytearray(b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
     data_file: TextIOWrapper
 
     # Properties
@@ -75,6 +82,7 @@ class Device():
 
     @rawdata.setter
     def rawdata(self, value):
+        # raw data format: bytearray(b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
         self.__rawdata = value
 
 
@@ -182,24 +190,28 @@ class Device():
         if print_status == "recording":
             if SHOW_VALUES_ON_SCREEN:
                 print("")
-                print(f"cnt: {cnt}   Time Stamp: {self.timeStamp}   Raw data: {self.rawdata}")
+                print(f"cnt: {cnt}   Time Stamp: {datetime_stamp}")
                 print(f"ACC X: {self.acc[0]}   ACC Y: {self.acc[1]}   ACC Z: {self.acc[2]}")
                 print(f"GYR X: {self.gyr[0]}   GYR Y: {self.gyr[1]}   GYR Z: {self.gyr[2]}")
                 print(f"MAG X: {self.mag[0]}   MAG Y: {self.mag[1]}   MAG Z: {self.mag[2]}")
+                print(f"Raw data: {self.rawdata}")
 
-            self.data_file.write(f"{cnt}, {self.timeStamp}, {exercise}, {sample}, \
-                {self.acc[0]}, {self.acc[1]}, {self.acc[2]},\
-                {self.gyr[0]}, {self.gyr[1]}, {self.gyr[2]},\
-                {self.mag[0]}, {self.mag[1]}, {self.mag[2]},\
-                {self.rawdata}\n")
-        
+            if FILE_TYPE == 'EDGE':
+                # Record for Edge Impulse - Timestamp and sensor data only
+                self.data_file.write(f"{self.timeStamp},{self.acc[0]},{self.acc[1]},{self.acc[2]},{self.gyr[0]},{self.gyr[1]},{self.gyr[2]},{self.mag[0]},{self.mag[1]},{self.mag[2]}\n")
+            else:
+                # Full data file version
+                self.data_file.write(f"{cnt},{self.timeStamp},{exercise},{sample},{self.acc[0]},{self.acc[1]},{self.acc[2]},{self.gyr[0]},{self.gyr[1]},{self.gyr[2]},{self.mag[0]},{self.mag[1]},{self.mag[2]},{self.rawdata}\n")
+
+
 
 # Store datetime stamp for filename
 def setInitialDateTimeStamp():
 
     global datetime_stamp
 
-    datetime_stamp = time.localtime()
+    # datetime_stamp = time.localtime()
+    datetime_stamp = datetime.now()
 
 
 # Generate the name of the file using the system's current time
@@ -208,18 +220,27 @@ def openFile():
     global exercise
 
     filename = ".\\data\\" + \
-        time.strftime('%y%m%d', datetime_stamp) + "_" + \
-        time.strftime('%H%M%S', datetime_stamp) + "_" + \
+        datetime_stamp.strftime('%y%m%d') + "_" + \
+        datetime_stamp.strftime('%H%M%S') + "_" + \
         '{:0>2}'.format(exercise) + "_" + \
         '{:0>2}'.format(sample) + ".csv"
 
     file = open(filename, "w")
 
-    title = "cnt, time stamp, exercise, sample, "
-    title += "ACC X, ACC Y, ACC Z, "
-    title += "GYR X, GYR Y, GYR Z, "
-    title += "MAG X, MAG Y, MAG Z, "
-    title += "raw\n"
+    # Full data file version
+    if FILE_TYPE == 'EDGE':
+        # Titles for Edge Impulse file version
+        title = "timestamp,"
+        title += "ACC X,ACC Y,ACC Z,"
+        title += "GYR X,GYR Y,GYR Z,"
+        title += "MAG X,MAG Y,MAG Z\n"
+    else:    
+        # All titles
+        title = "cnt, timestamp, exercise, sample, "
+        title += "ACC X, ACC Y, ACC Z, "
+        title += "GYR X, GYR Y, GYR Z, "
+        title += "MAG X, MAG Y, MAG Z, "
+        title += "raw\n"
 
     file.write(f"{title}")
 
@@ -227,11 +248,9 @@ def openFile():
 
 
 # Obtain the number of the exercise to record
-def updateExerciseNumber():
+async def menu():
 
     global exercise
-
-    keyboard.send('esc')
 
     # Display options
     print("Menu")
@@ -243,23 +262,33 @@ def updateExerciseNumber():
     print("x - Exit")
     print("")
 
-    selection = input()
+    while True:
+        key = await async_input_without_enter_needed()
 
-    if selection == 'x':
-        exercise = -1
-    else:
-        exercise = int(selection)
+        if key in (b'x', 'x'):      # Exit
+            exercise = -1
+            break
+        elif key in (b'123'):  # Exercise selected
+            exercise = int(key)
+            break
+
+    return key
 
 
 # Generate data to train the model
-async def generateData(client):
+async def mainControl(client):
     
     global print_status, exercise, sample
 
+    if client is None:
+        raise Exception(f"Could not find device with BLE address {client}")
+    
     try:
         # Initialize process
         setInitialDateTimeStamp()
-        updateExerciseNumber()
+        key = await menu()
+        if key in (b'x', 'x'):   # User selected the exit option
+            return
 
         print_status = "ready"
         print(f"   Ready to start exercise {exercise}!")
@@ -268,13 +297,12 @@ async def generateData(client):
         await client.start_notification(HANDLE_READ_DATA)
         
         while True:
-            if exercise == -1:
-                break
-
-            await asyncio.sleep(0)
+            # await asyncio.sleep(0)
 
             # Keyboard management
-            if keyboard.is_pressed("x"):    # Exit
+            key = await async_input_without_enter_needed()
+
+            if key in (b'x', 'x'):          # Exit
                 if print_status == "recording":
                     print(f"      ...End data collection exercise {exercise} / sample {sample}")
                     client.data_file.close()
@@ -283,7 +311,7 @@ async def generateData(client):
                 print("Data collection terminated")
                 break
 
-            elif keyboard.is_pressed("s"):  # Start collecting data
+            elif key in (b's', 's'):          # Start collecting data
                 if print_status != "recording":
                     sample += 1
                     print(f"      Start data collection exercise {exercise} / sample {sample}...")
@@ -291,24 +319,27 @@ async def generateData(client):
             
                     client.data_file = openFile()
 
-            elif keyboard.is_pressed("e"):  # Stop data collection
+            elif key in (b'e', 'e'):          # Stop data collection
                 if print_status == "recording":
                     print(f"      ...End data collection exercise {exercise} / sample {sample}")
                     print_status = "stopped"
                     client.data_file.close()
                     print('File closed')
             
-            elif keyboard.is_pressed("n"):  # Prepare system for new exercise
+            elif key in (b'm', 'm'):          # Prepare system for new exercise
                 if print_status != "ready":
                     if print_status == "recording":
                         print(f"      ...End data collection exercise {exercise} / sample {sample}")
                         client.data_file.close()
                         print('File closed')
 
-                    updateExerciseNumber()
-                    print(f"   Ready to start exercise {exercise}")
+                    key = await menu()
+                    if key in (b'x', 'x'):      # User selected the exit option
+                        break
+                    else:
+                        print(f"   Ready to start exercise {exercise}")
+                    
                     print_status = "ready"
-                
                     sample = 0
 
         # Stop notifications
@@ -323,11 +354,8 @@ async def generateData(client):
             print('File closed')
         except:
             pass
-        finally:
-            keyboard.send('esc')
 
     print('Data capture complete')
-    return
 
 
 async def main():
@@ -347,7 +375,7 @@ async def main():
 
     # Read and process data
     print("Starting testing...")
-    await generateData(st2)
+    await mainControl(st2)
 
     # GUI
     # app.exec()
@@ -355,8 +383,6 @@ async def main():
     # Closes the process
     print("Process complete.")
     
-    return
-
 
 if __name__ == "__main__":
 

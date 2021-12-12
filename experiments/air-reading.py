@@ -230,37 +230,8 @@ def notification_handler(sender, data):
 
 
 async def main():
-    # await test()
-
+    
     # await process_one(DEVICE_MAC)
     await process_all()
-    # device_name = 'ABC'
-    # char1 = '00002a00-0000-1000-8000-00805f9b34fb'
-    # char2 = '00002a01-0000-1000-8000-00805f9b34fb'
-    # char3 = '00002a04-0000-1000-8000-00805f9b34fb'
-    # char4 = '00140000-0001-11e1-ac36-0002a5d5c51b'
-    # char5 = int(6)
-
-    # await read_char_ST(16)
-    # await read_char_ST(char1)
-    # await read_char_ST(char2)
-    # await read_char_ST(char3)
-    # await read_char_ST(char4)
-    # await read_char_ST(char5)
-
-    # await write_char_ST(bytearray(map(ord, 'ABC')))
-    # await write_char_ST(bytearray(map(ord, bytearray(b'\x01\x00'))))
-
-    # await write_char_ST(bytearray(b'01234567'))
-    # await write_char_ST(bytearray(b'ABC', 'UTF-8'))
-
-
-    # await write_char_ST(bytearray('ABC', 'UTF-8'))
-    # await write_char_ST('ST1')
-    # await write_char_ST(bytes(b'ABC'))
-    # await write_char_ST(bytes('ABC', 'UTF-8'))
-    # await write_char_ST('ST1')
-
-    # await read_char_ST()
 
 asyncio.run(main())

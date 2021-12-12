@@ -17,3 +17,10 @@ DEVICE_MAC = 'C0:83:48:32:4A:36'                    # SensorTile 2
 # DEVICE_MAC = 'C0:50:20:32:1A:33'                    # SensorTile.Box 1
 # DEVICE_MAC = 'C0:50:25:33:2E:33'                    # SensorTile.Box 2
 # DEVICE_MAC = 'C0:50:1C:32:1E:33'                    # SensorTile.Box 3
+
+
+# File type
+# =========
+
+# FILE_TYPE = 'FULL'  # All columns
+FILE_TYPE = 'EDGE'  # Only time stamp and sensor data

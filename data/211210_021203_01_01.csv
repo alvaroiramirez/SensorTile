@@ -1,9 +1,0 @@
-cnt, time stamp, exercise, sample, ACC X, ACC Y, ACC Z, GYR X, GYR Y, GYR Z, MAG X, MAG Y, MAG Z, raw
-35, 21939, 1, 1,                 384, 401, 839,                -4, -25, -1,                -99, -118, 34,                bytearray(b'\xb3U\x80\x01\x91\x01G\x03\xfc\xff\xe7\xff\xff\xff\x9d\xff\x8a\xff"\x00')
-36, 21946, 1, 1,                 391, 411, 846,                -4, -26, 0,                -102, -111, 25,                bytearray(b'\xbaU\x87\x01\x9b\x01N\x03\xfc\xff\xe6\xff\x00\x00\x9a\xff\x91\xff\x19\x00')
-37, 21952, 1, 1,                 383, 408, 845,                -2, -26, 0,                -99, -120, 36,                bytearray(b'\xc0U\x7f\x01\x98\x01M\x03\xfe\xff\xe6\xff\x00\x00\x9d\xff\x88\xff$\x00')
-38, 21958, 1, 1,                 386, 407, 840,                -2, -26, -1,                -93, -124, 34,                bytearray(b'\xc6U\x82\x01\x97\x01H\x03\xfe\xff\xe6\xff\xff\xff\xa3\xff\x84\xff"\x00')
-39, 21964, 1, 1,                 386, 402, 844,                -4, -24, -1,                -85, -120, 36,                bytearray(b'\xccU\x82\x01\x92\x01L\x03\xfc\xff\xe8\xff\xff\xff\xab\xff\x88\xff$\x00')
-40, 21971, 1, 1,                 382, 395, 842,                -2, -25, 0,                -96, -130, 25,                bytearray(b'\xd3U~\x01\x8b\x01J\x03\xfe\xff\xe7\xff\x00\x00\xa0\xff~\xff\x19\x00')
-41, 21977, 1, 1,                 380, 405, 842,                -2, -26, 0,                -96, -102, 40,                bytearray(b'\xd9U|\x01\x95\x01J\x03\xfe\xff\xe6\xff\x00\x00\xa0\xff\x9a\xff(\x00')
-42, 21983, 1, 1,                 384, 402, 839,                -4, -26, 0,                -97, -117, 40,                bytearray(b'\xdfU\x80\x01\x92\x01G\x03\xfc\xff\xe6\xff\x00\x00\x9f\xff\x8b\xff(\x00')
