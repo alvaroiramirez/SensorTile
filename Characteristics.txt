@@ -1,0 +1,41 @@
+# Services, Characteristics and Descriptors in ALLMEMS1
+
+[Service] 00001801-0000-1000-8000-00805f9b34fb (Handle: 1): Generic Attribute Profile
+  [Characteristic] 00002a05-0000-1000-8000-00805f9b34fb (Handle: 2):  (indicate), Value: None
+          [Descriptor] 00002902-0000-1000-8000-00805f9b34fb (Handle: 4): Client Characteristic Configuration) | Value: b'\x02\x00'
+[Service] 00001800-0000-1000-8000-00805f9b34fb (Handle: 5): Generic Access Profile
+  [Characteristic] 00002a00-0000-1000-8000-00805f9b34fb (Handle: 6):  (read,write-without-response,write,authenticated-signed-writes), Value: b'AM1V310'
+  [Characteristic] 00002a01-0000-1000-8000-00805f9b34fb (Handle: 8):  (read,write-without-response,write,authenticated-signed-writes), Value: b'\x00\x00'
+  [Characteristic] 00002a04-0000-1000-8000-00805f9b34fb (Handle: 10):  (read), Value: b'\xff\xff\xff\xff\x00\x00\xff\xff'
+[Service] 00000000-0001-11e1-9ab4-0002a5d5c51b (Handle: 12): Unknown
+  [Characteristic] 00140000-0001-11e1-ac36-0002a5d5c51b (Handle: 13):  (read,notify), Value: b'>\xf6\xbd\x8d\x01\x00I\x01'
+          [Descriptor] 00002902-0000-1000-8000-00805f9b34fb (Handle: 15): Client Characteristic Configuration) | Value: b'\x00\x00'
+  [Characteristic] 00e00000-0001-11e1-ac36-0002a5d5c51b (Handle: 16):  (notify), Value: None
+          [Descriptor] 00002902-0000-1000-8000-00805f9b34fb (Handle: 18): Client Characteristic Configuration) | Value: b'\x00\x00'
+  [Characteristic] 00000400-0001-11e1-ac36-0002a5d5c51b (Handle: 19):  (read,notify), Value: b'N\xf6\x00\x00'
+          [Descriptor] 00002902-0000-1000-8000-00805f9b34fb (Handle: 21): Client Characteristic Configuration) | Value: b'\x00\x00'
+  [Characteristic] 04000000-0001-11e1-ac36-0002a5d5c51b (Handle: 22):  (notify), Value: None
+          [Descriptor] 00002902-0000-1000-8000-00805f9b34fb (Handle: 24): Client Characteristic Configuration) | Value: b'\x00\x00'
+  [Characteristic] 00000100-0001-11e1-ac36-0002a5d5c51b (Handle: 25):  (notify), Value: None
+          [Descriptor] 00002902-0000-1000-8000-00805f9b34fb (Handle: 27): Client Characteristic Configuration) | Value: b'\x00\x00'
+  [Characteristic] 00000040-0001-11e1-ac36-0002a5d5c51b (Handle: 28):  (notify), Value: None
+          [Descriptor] 00002902-0000-1000-8000-00805f9b34fb (Handle: 30): Client Characteristic Configuration) | Value: b'\x00\x00'
+  [Characteristic] 00000010-0001-11e1-ac36-0002a5d5c51b (Handle: 31):  (read,notify), Value: b't\xf6\x00'
+          [Descriptor] 00002902-0000-1000-8000-00805f9b34fb (Handle: 33): Client Characteristic Configuration) | Value: b'\x00\x00'
+  [Characteristic] 00000008-0001-11e1-ac36-0002a5d5c51b (Handle: 34):  (read,notify), Value: b'}\xf6\x00'
+          [Descriptor] 00002902-0000-1000-8000-00805f9b34fb (Handle: 36): Client Characteristic Configuration) | Value: b'\x00\x00'
+  [Characteristic] 00000002-0001-11e1-ac36-0002a5d5c51b (Handle: 37):  (read,notify), Value: b'\x86\xf6\x00'
+          [Descriptor] 00002902-0000-1000-8000-00805f9b34fb (Handle: 39): Client Characteristic Configuration) | Value: b'\x00\x00'
+  [Characteristic] 08000000-0001-11e1-ac36-0002a5d5c51b (Handle: 40):  (notify), Value: None
+          [Descriptor] 00002902-0000-1000-8000-00805f9b34fb (Handle: 42): Client Characteristic Configuration) | Value: b'\x00\x00'
+  [Characteristic] 40000000-0001-11e1-ac36-0002a5d5c51b (Handle: 43):  (notify), Value: None
+          [Descriptor] 00002902-0000-1000-8000-00805f9b34fb (Handle: 45): Client Characteristic Configuration) | Value: b'\x00\x00'
+[Service] 00000000-000e-11e1-9ab4-0002a5d5c51b (Handle: 46): Unknown
+  [Characteristic] 00000001-000e-11e1-ac36-0002a5d5c51b (Handle: 47):  (read,write-without-response,write,notify), Value: b'setName ST2\n'
+          [Descriptor] 00002902-0000-1000-8000-00805f9b34fb (Handle: 49): Client Characteristic Configuration) | Value: b'\x00\x00'
+  [Characteristic] 00000002-000e-11e1-ac36-0002a5d5c51b (Handle: 50):  (read,notify), Value: b''
+          [Descriptor] 00002902-0000-1000-8000-00805f9b34fb (Handle: 52): Client Characteristic Configuration) | Value: b'\x00\x00'
+[Service] 00000000-000f-11e1-9ab4-0002a5d5c51b (Handle: 53): Unknown
+  [Characteristic] 00000002-000f-11e1-ac36-0002a5d5c51b (Handle: 54):  (write-without-response,notify), Value: None
+          [Descriptor] 00002902-0000-1000-8000-00805f9b34fb (Handle: 56): Client Characteristic Configuration) | Value: b'\x00\x00'
+

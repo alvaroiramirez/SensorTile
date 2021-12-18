@@ -358,11 +358,6 @@ async def mainControl(client):
 
 async def main():
 
-    # GUI
-    # app = QApplication([])
-    # window = MainWindow()
-    # window.show()
-
     # Register device
     print("Registering device...")
     st2 = Device(DEVICE_MAC)
@@ -374,9 +369,6 @@ async def main():
     # Read and process data
     print("Starting testing...")
     await mainControl(st2)
-
-    # GUI
-    # app.exec()
 
     # Closes the process
     print("Process complete.")
