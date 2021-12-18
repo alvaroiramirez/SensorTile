@@ -25,6 +25,11 @@ Collected data is stored in .csv format.
 
 Run 'st-backend.py' to execute the system.
 
+
+------
+
+NOTE: All data used in the project can be found under \data folder.
+
 ------
 
 Bleak is an acronym for Bluetooth Low Energy platform Agnostic Klient.
